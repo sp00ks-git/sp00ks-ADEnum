@@ -29,8 +29,9 @@ namespace sp00ks_AdEnum
             Console.WriteLine("1) Reverse String");
             Console.WriteLine("2) Remove Whitespace");
             Console.WriteLine("3) Display AD User Details (Net User)");
-            Console.WriteLine("4) Display AD User Details (LDAP) OPSEC Safer");
+            Console.WriteLine("4) Display AD User Details (LDAP) OPSEC Safe");
             Console.WriteLine("5) Display Local Info");
+            Console.WriteLine("6) SPN Scanning Info");
             Console.WriteLine("x) Exit");
             Console.Write("\r\nSelect an option: ");
 
@@ -50,6 +51,9 @@ namespace sp00ks_AdEnum
                     return true;
                 case "5":
                     Display_Local_Info();
+                    return true;
+                case "6":
+                    SPN_Scanning_Info();
                     return true;
                 case "x":
                     return false;
@@ -79,21 +83,6 @@ namespace sp00ks_AdEnum
             Console.WriteLine("Remove Whitespace");
             DisplayResult(CaptureInput().Replace(" ", ""));
         }
-
-
-        // private static void ADUserDetails()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("AD User Details Menu!");
-        //    Console.WriteLine("Enter the user to find their details - Method - Net User");
-        //    string answer1 = Console.ReadLine();
-        //    System.Diagnostics.Process.Start("CMD.exe", "/c " + answer1);
-        //    Thread.Sleep(1000);
-        //    Console.Write("\r\nPress Enter to return to the Main Menu");
-        //    Console.WriteLine("Enter the user to find their details - Method - Net User");
-        //    string answer2 = Console.ReadLine();
-        //    Console.ReadLine(); //used to pause
-        //}
 
         private static void ADUserDetails_netuser()
         {
@@ -216,6 +205,39 @@ namespace sp00ks_AdEnum
                 string mainIP = ipAddress[0];
                 Console.WriteLine("The Public Facing IP is: {0} ", mainIP);
             }
+            //Wait for the user to press any key.
+            Console.ReadKey(true);
+        }
+
+
+        private static void SPN_Scanning_Info()
+        {
+
+            Console.Clear();
+            Console.WriteLine("Scan the domain for Potential SPN's!");
+            //Open up PowerShell with no window
+            Process ps = new Process();
+            ProcessStartInfo psinfo = new ProcessStartInfo();
+            psinfo.FileName = "powershell.exe";
+            psinfo.WindowStyle = ProcessWindowStyle.Hidden;
+            psinfo.UseShellExecute = false;
+            psinfo.RedirectStandardInput = true;
+            psinfo.RedirectStandardOutput = true;
+            ps.StartInfo = psinfo;
+            ps.Start();
+            //Done with that.
+
+            //Run the command.
+            ps.StandardInput.WriteLine("([adsisearcher]”(&(objectClass=User)(primarygroupid=513)(servicePrincipalName=*))”).FindAll() | ForEach-Object { “Name:$($_.properties.name)””SPN:$($_.properties.serviceprincipalname)””Path:$($_.Path)”””}");
+            ps.StandardInput.Flush();
+            ps.StandardInput.Close();
+            ps.WaitForExit();
+            //Done running it.
+
+            //Write it to the console.
+            Console.WriteLine(ps.StandardOutput.ReadToEnd());
+            //Done with everything.
+
             //Wait for the user to press any key.
             Console.ReadKey(true);
         }
